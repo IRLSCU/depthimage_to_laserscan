@@ -111,8 +111,9 @@ namespace depthimage_to_laserscan
      * @param output_frame_id Frame_id to use for the output sensor_msgs::LaserScan.
      *
      */
-    void set_output_frame(const std::string& output_frame_id);
-
+    void set_output_frame(const std::string output_frame_id);
+    // 设置上下边界点
+    void set_y_thresh(const float ythresh_min,const float ythresh_max);
   private:
     /**
      * Computes euclidean length of a cv::Point3d (as a ray from origin)
@@ -167,47 +168,67 @@ namespace depthimage_to_laserscan
     *
     */
     template<typename T>
-    void convert(const sensor_msgs::ImageConstPtr& depth_msg, const image_geometry::PinholeCameraModel& cam_model,
-        const sensor_msgs::LaserScanPtr& scan_msg, const int& scan_height) const{
+    void convert(const sensor_msgs::ImageConstPtr& depth_msg, const image_geometry::PinholeCameraModel& cam_model, 
+		  const sensor_msgs::LaserScanPtr& scan_msg, const int& scan_height) const{
       // Use correct principal point from calibration
-      const float center_x = cam_model.cx();
-      const float center_y = cam_model.cy();
-
+      // 获取像素中心点坐标
+      float center_x = cam_model.cx();
+      float center_y = cam_model.cy();
       // Combine unit conversion (if necessary) with scaling by focal length for computing (X,Y)
-      const double unit_scaling = depthimage_to_laserscan::DepthTraits<T>::toMeters( T(1) );
-      const float constant_x = unit_scaling / cam_model.fx();
-
+      // 设置缩放比例尺将基本单位转换为米
+      double unit_scaling = depthimage_to_laserscan::DepthTraits<T>::toMeters( T(1) );
+      // 计算对应的高度
+      float constant_x = unit_scaling / cam_model.fx();
+      float constant_y = unit_scaling / cam_model.fy();
+      // 获取数据行指针
       const T* depth_row = reinterpret_cast<const T*>(&depth_msg->data[0]);
-      const int row_step = depth_msg->step / sizeof(T);
-
-      const int offset = (int)(center_y - scan_height/2);
+      // 获取每行步长
+      int row_step = depth_msg->step / sizeof(T);
+      // 计算山下偏移
+      int offset = (int)(cam_model.cy()-scan_height/2);
       depth_row += offset*row_step; // Offset to center of image
-
-      for(int v = offset; v < offset+scan_height_; ++v, depth_row += row_step){
-        for (int u = 0; u < (int)depth_msg->width; ++u) // Loop over each pixel in row
-        {
-          const T depth = depth_row[u];
-
+      // 遍历图图像
+      for(int v = offset; v < offset+scan_height_; v++, depth_row += row_step){ //按照行进行遍历
+        for (int u = 0; u < (int)depth_msg->width; u++) // 遍历行中每一个像素点
+        {	
+          // 获取当前像素点的深度
+          T depth = depth_row[u];
+          // 没有检测出来直接跳过
+          if(depth==0) {
+              continue;
+          }
           double r = depth; // Assign to pass through NaNs and Infs
-          const double th = -atan2((double)(u - center_x) * constant_x, unit_scaling); // Atan2(x, z), but depth divides out
-          const int index = (th - scan_msg->angle_min) / scan_msg->angle_increment;
-
+          double th = -atan2((double)(u - center_x) * constant_x, unit_scaling); // Atan2(x, z), but depth divides out
+          // 计算转角对应索引
+          int index = (th - scan_msg->angle_min) / scan_msg->angle_increment;
+          // depth存在
           if (depthimage_to_laserscan::DepthTraits<T>::valid(depth)){ // Not NaN or Inf
-            // Calculate in XYZ
+            // Calculate in XYZ 
+            // 计算xyz对应的坐标
             double x = (u - center_x) * depth * constant_x;
             double z = depthimage_to_laserscan::DepthTraits<T>::toMeters(depth);
-
+            double y = (v - center_y) * depth * constant_y;//定义y数值
+            //如果y不符合条件就把他忽略
+            if(y<ythresh_min_||y>ythresh_max_)
+            {
+                r = std::numeric_limits<float>::quiet_NaN();//精髓在这一步，没看懂
+                continue;
+            }
             // Calculate actual distance
-            r = hypot(x, z);
+            r = sqrt(pow(x, 2.0) + pow(z, 2.0));
           }
-
+        
           // Determine if this point should be used.
-          if(use_point(r, scan_msg->ranges[index], scan_msg->range_min, scan_msg->range_max)){
+          if(use_point(r, scan_msg->ranges[index], scan_msg->range_min, scan_msg->range_max)) {
             scan_msg->ranges[index] = r;
           }
         }
       }
     }
+  
+    // 扫描的上下边界点
+    float ythresh_min_;
+    float ythresh_max_;
 
     image_geometry::PinholeCameraModel cam_model_; ///< image_geometry helper class for managing sensor_msgs/CameraInfo messages.
 

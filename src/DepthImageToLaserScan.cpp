@@ -102,18 +102,19 @@ sensor_msgs::LaserScanPtr DepthImageToLaserScan::convert_msg(const sensor_msgs::
   cv::Point2d raw_pixel_center(cam_model_.cx(), cam_model_.cy());
   cv::Point2d rect_pixel_center = cam_model_.rectifyPoint(raw_pixel_center);
   cv::Point3d center_ray = cam_model_.projectPixelTo3dRay(rect_pixel_center);
-
-  const double angle_max = angle_between_rays(left_ray, center_ray);
-  const double angle_min = -angle_between_rays(center_ray, right_ray); // Negative because the laserscan message expects an opposite rotation of that from the depth image
-
+  // 计算最大转角和最小转角
+  double angle_max = angle_between_rays(left_ray, center_ray);
+  double angle_min = -angle_between_rays(center_ray, right_ray); // Negative because the laserscan message expects an opposite rotation of that from the depth image
   // Fill in laserscan message
   sensor_msgs::LaserScanPtr scan_msg(new sensor_msgs::LaserScan());
   scan_msg->header = depth_msg->header;
+  // 设置帧号
   if(output_frame_id_.length() > 0){
     scan_msg->header.frame_id = output_frame_id_;
   }
   scan_msg->angle_min = angle_min;
   scan_msg->angle_max = angle_max;
+  // 计算转角的最小单位
   scan_msg->angle_increment = (scan_msg->angle_max - scan_msg->angle_min) / (depth_msg->width - 1);
   scan_msg->time_increment = 0.0;
   scan_msg->scan_time = scan_time_;
@@ -164,4 +165,9 @@ void DepthImageToLaserScan::set_scan_height(const int scan_height){
 
 void DepthImageToLaserScan::set_output_frame(const std::string& output_frame_id){
   output_frame_id_ = output_frame_id;
+}
+
+void DepthImageToLaserScan::set_y_thresh(const float ythresh_min, const float ythresh_max){
+  ythresh_min_ = ythresh_min;
+  ythresh_max_ = ythresh_max;
 }
