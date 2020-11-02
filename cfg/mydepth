@@ -1,0 +1,29 @@
+!!python/object/new:dynamic_reconfigure.encoding.Config
+dictitems:
+  groups: !!python/object/new:dynamic_reconfigure.encoding.Config
+    dictitems:
+      groups: !!python/object/new:dynamic_reconfigure.encoding.Config
+        state: []
+      id: 0
+      name: Default
+      output_frame_id: camera_depth_frame
+      parameters: !!python/object/new:dynamic_reconfigure.encoding.Config
+        state: []
+      parent: 0
+      range_max: 10.0
+      range_min: 0.45
+      scan_height: 500
+      scan_time: 0.033
+      state: true
+      type: ''
+      ythresh_max: 0.4
+      ythresh_min: -1.5
+    state: []
+  output_frame_id: camera_depth_frame
+  range_max: 10.0
+  range_min: 0.45
+  scan_height: 500
+  scan_time: 0.033
+  ythresh_max: 0.4
+  ythresh_min: -1.5
+state: []

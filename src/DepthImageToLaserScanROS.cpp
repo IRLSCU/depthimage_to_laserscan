@@ -27,22 +27,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* 
+/*
  * Author: Chad Rockey
  */
 
 #include <depthimage_to_laserscan/DepthImageToLaserScanROS.h>
 
 using namespace depthimage_to_laserscan;
-  
+
 DepthImageToLaserScanROS::DepthImageToLaserScanROS(ros::NodeHandle& n, ros::NodeHandle& pnh):pnh_(pnh), it_(n), srv_(pnh) {
   boost::mutex::scoped_lock lock(connect_mutex_);
-  
+
   // Dynamic Reconfigure
   dynamic_reconfigure::Server<depthimage_to_laserscan::DepthConfig>::CallbackType f;
   f = boost::bind(&DepthImageToLaserScanROS::reconfigureCb, this, _1, _2);
   srv_.setCallback(f);
-  
+
   // Lazy subscription to depth image topic
   pub_ = n.advertise<sensor_msgs::LaserScan>("scan", 10, boost::bind(&DepthImageToLaserScanROS::connectCb, this, _1), boost::bind(&DepthImageToLaserScanROS::disconnectCb, this, _1));
 }
@@ -88,4 +88,5 @@ void DepthImageToLaserScanROS::reconfigureCb(depthimage_to_laserscan::DepthConfi
     dtl_.set_range_limits(config.range_min, config.range_max);
     dtl_.set_scan_height(config.scan_height);
     dtl_.set_output_frame(config.output_frame_id);
+    dtl_.set_y_thresh(config.ythresh_min, config.ythresh_max);
 }
