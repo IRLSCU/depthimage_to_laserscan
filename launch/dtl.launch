@@ -1,0 +1,21 @@
+<launch>
+<!--<include file="$(find openni2_launch)/launch/openni2.launch"/>-->
+
+<node pkg="depthimage_to_laserscan" type="depthimage_to_laserscan" name="depthimage_to_laserscan" output="screen" args="depthimage_to_laserscan image:=/camera/depth/image_raw">
+
+<!--<remap from="image" to="/camera/depth_registered/image_raw"/-->
+<!--<remap from="camera_info" to="/camera/depth_registered/camera_info"/>-->
+<remap from="scan" to="/xtion_scan"/>
+
+<param name="scan_height" value="400"/>
+<param name="output_frame_id" value="xtion_scan_frame"/>
+<param name="range_min" type="double" value="0"/>
+<param name="range_max" type="double" value="10"/>
+<param name="ythresh_min" type="double" value="-0.60"/>
+<param name="ythresh_max" type="double" value="0.40"/>
+
+</node>
+
+<node pkg="tf" type="static_transform_publisher" name="xtion_to_laser" args="0 0 0 0 0 0 1 xtion_scan_frame laser 100" />
+
+</launch>
