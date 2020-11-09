@@ -1,21 +1,30 @@
 <launch>
 <!--<include file="$(find openni2_launch)/launch/openni2.launch"/>-->
+<include file="$(find astra_launch)/launch/astra.launch"/>
+<node name="depth_scan" pkg="depthimage_to_laserscan" type="depthimage_to_laserscan"  output="screen" args="image:=/camera/depth/image_raw">
 
-<node pkg="depthimage_to_laserscan" type="depthimage_to_laserscan" name="depthimage_to_laserscan" output="screen" args="depthimage_to_laserscan image:=/camera/depth/image_raw">
-
-<!--<remap from="image" to="/camera/depth_registered/image_raw"/-->
-<!--<remap from="camera_info" to="/camera/depth_registered/camera_info"/>-->
-<remap from="scan" to="/xtion_scan"/>
+<remap from="depth_image" to="/camera/depth_registered/image_raw"/>
+<remap from="camera_info" to="/camera/depth_registered/camera_info"/>
+<remap from="scan" to="/scan"/>
 
 <param name="scan_height" value="400"/>
-<param name="output_frame_id" value="xtion_scan_frame"/>
+<param name="output_frame_id" value="laser1"/>
 <param name="range_min" type="double" value="0"/>
 <param name="range_max" type="double" value="10"/>
 <param name="ythresh_min" type="double" value="-0.60"/>
 <param name="ythresh_max" type="double" value="0.40"/>
 
 </node>
-
-<node pkg="tf" type="static_transform_publisher" name="xtion_to_laser" args="0 0 0 0 0 0 1 xtion_scan_frame laser 100" />
-
+<node name="rplidarNode"          pkg="rplidar_ros"  type="rplidarNode" output="screen">
+  <param name="serial_port"         type="string" value="/dev/rikilidar"/>
+  <param name="serial_baudrate"     type="int"    value="115200"/><!--A1/A2 -->
+  <!--param name="serial_baudrate"     type="int"    value="256000"--><!--A3 -->
+  <param name="frame_id"            type="string" value="laser2"/>
+  <param name="inverted"            type="bool"   value="false"/>
+  <param name="angle_compensate"    type="bool"   value="true"/>
+  <remap from="scan" to="/scan"/>
+</node>
+<node name="laser_tf"         pkg="depthimage_to_laserscan"  type="laser_tf" output="screen" />
+<!--<node pkg="tf" type="static_transform_publisher" name="xtion_to_laser" args="0 0 0 0 0 0 1 laser2 laser 100" />-->
 </launch>
+
