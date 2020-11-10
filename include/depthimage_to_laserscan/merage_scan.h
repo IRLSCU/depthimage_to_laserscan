@@ -40,8 +40,9 @@ public:
      * @brief Construct a new Merage Scan object
      * @param  lidar_handle             雷达订阅控制函数    
      * @param  depth_scan_handleMy      深度相机控制函数
+     * @param  publish_handle           发布节点版本
      */
-    MerageScan(ros::NodeHandle& lidar_handle,ros::NodeHandle& depth_scan_handle);
+    MerageScan(ros::NodeHandle& lidar_handle,ros::NodeHandle& depth_scan_handle,ros::NodeHandle& publish_handle);
     
     /**
      * @brief  激光雷达数据合并点关键函数，将数据进行合并到res1中

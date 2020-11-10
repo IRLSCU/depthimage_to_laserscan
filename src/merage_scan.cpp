@@ -4,10 +4,14 @@
 
 MerageScan::MerageScan(
                             ros::NodeHandle& lidar_handle,
-                            ros::NodeHandle& depth_scan_handle
+                            ros::NodeHandle& depth_scan_handle,
+                            ros::NodeHandle& publish_handle
                             )
 {
+    //使用handle进行参数绑定
     
+    //创建发布节点;并设置回调函数
+    this->merage_pub_ = publish_handle.advertise<sensor_msgs::LaserScan>("scan", 10,std::bind(&MerageScan::connectCallBack,this,_1),std::bind(&MerageScan::disconnectCallBack,this,_1));
 }
 
 void MerageScan::merageScan(
