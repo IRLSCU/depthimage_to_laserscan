@@ -65,7 +65,7 @@ void DepthImageToLaserScanROS::depthCb(const sensor_msgs::ImageConstPtr& depth_m
     ROS_ERROR_THROTTLE(1.0, "Could not convert depth image to laserscan: %s", e.what());
   }
 }
-
+// 连接之后的对应函数
 void DepthImageToLaserScanROS::connectCb(const ros::SingleSubscriberPublisher& pub) {
   boost::mutex::scoped_lock lock(connect_mutex_);
   if (!sub_ && pub_.getNumSubscribers() > 0) {
