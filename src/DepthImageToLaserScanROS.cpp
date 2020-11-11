@@ -57,6 +57,7 @@ void DepthImageToLaserScanROS::depthCb(const sensor_msgs::ImageConstPtr& depth_m
 	      const sensor_msgs::CameraInfoConstPtr& info_msg){
   try
   {
+    // 进行处理并获取消息
     sensor_msgs::LaserScanPtr scan_msg = dtl_.convert_msg(depth_msg, info_msg);
     pub_.publish(scan_msg);
   }
@@ -68,6 +69,7 @@ void DepthImageToLaserScanROS::depthCb(const sensor_msgs::ImageConstPtr& depth_m
 // 连接之后的对应函数
 void DepthImageToLaserScanROS::connectCb(const ros::SingleSubscriberPublisher& pub) {
   boost::mutex::scoped_lock lock(connect_mutex_);
+  // 更新并绑定处理函数
   if (!sub_ && pub_.getNumSubscribers() > 0) {
     ROS_DEBUG("Connecting to depth topic.");
     image_transport::TransportHints hints("raw", ros::TransportHints(), pnh_);

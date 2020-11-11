@@ -33,8 +33,15 @@
 #include <algorithm>
 #include <functional>
 #include <memory>
+#include <mutex>
+#include <atomic>
+#include <message_filters/subscriber.h>
+#include <message_filters/synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
+#include <message_filters/sync_policies/exact_time.h>
 
 class MerageScan {
+    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::LaserScan, sensor_msgs::LaserScan> MySyncPolicy; 
 public:
     /**
      * @brief Construct a new Merage Scan object
@@ -50,7 +57,9 @@ public:
      * @param  laser_scan_ptr_2     雷达激光扫描数据2
      * @param  res                  扫描输出结果数据
      */
-    static void merageScan(sensor_msgs::LaserScanPtr laser_scan_ptr_1,sensor_msgs::LaserScanPtr laser_scan_ptr_2,sensor_msgs::LaserScanPtr res);
+    static void merageScan( const sensor_msgs::LaserScanPtr& laser_scan_ptr_1,
+                            const sensor_msgs::LaserScanPtr& laser_scan_ptr_2,
+                            sensor_msgs::LaserScanPtr& res);
     /**
      * @brief  ros请求连接建立函数 
      * @param  pub              请求数据关键指针
@@ -61,18 +70,25 @@ public:
      * @param  pub              请求数据关键指针
      */
     void disconnectCallBack(const ros::SingleSubscriberPublisher& pub);
-
-    inline ros::Subscriber getLidarScan() {return lidar_scan_;}
-    inline ros::Subscriber getDepthScan() {return depth_scan_;}
-    void setLidarScan(ros::Subscriber lidar_scan) {lidar_scan_ = lidar_scan;}
-    void SetDepthScan(ros::Subscriber depth_scan) {depth_scan_ = depth_scan_;}
-    
-
+    /**
+     * @brief  同步消息和回调函数，执行两个雷达数据的同步和合并
+     * @param  lidar_scan_point    雷达扫描点云
+     * @param  depth_scan_point    深度扫描点云
+     */
+    void synCallBack(
+                     const sensor_msgs::LaserScanPtr& lidar_scan_point,
+                     const sensor_msgs::LaserScanPtr& depth_scan_point
+                    );
 private:
-    ros::Subscriber lidar_scan_;        ///< 单线激光雷达扫描数据点
-    ros::Subscriber depth_scan_;        ///< 深度相机 雷达转换节点
-    ros::Publisher merage_pub_;         ///< 公共发布节点
-    
+
+    message_filters::Subscriber<sensor_msgs::LaserScan>  lidar_scan_;           ///< 单线激光雷达扫描数据点
+    message_filters::Subscriber<sensor_msgs::LaserScan> depth_scan_;            ///< 深度相机 雷达转换节点
+    message_filters::Synchronizer<MySyncPolicy>      sync_;                     ///< 异步绑定处理节点
+    ros::Publisher merage_pub_;
+                                                  ///< 公共发布节点
+    std::atomic<bool> is_connected_=false;         ///< 是否连接标志位
+    std::mutex  laser_scan_lock_;                  ///< 输出结果数据保护锁
+    sensor_msgs::LaserScanPtr  res_scan_ptr_;                    ///< 公共链接标志指针
 };
 
 #endif
