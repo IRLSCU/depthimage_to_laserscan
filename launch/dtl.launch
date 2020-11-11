@@ -5,7 +5,7 @@
 
 <remap from="depth_image" to="/camera/depth_registered/image_raw"/>
 <remap from="camera_info" to="/camera/depth_registered/camera_info"/>
-<remap from="scan" to="/scan"/>
+<remap from="scan" to="/depth_scan_points"/>
 
 <param name="scan_height" value="400"/>
 <param name="output_frame_id" value="laser1"/>
@@ -22,7 +22,7 @@
   <param name="frame_id"            type="string" value="laser2"/>
   <param name="inverted"            type="bool"   value="false"/>
   <param name="angle_compensate"    type="bool"   value="true"/>
-  <remap from="scan" to="/scan"/>
+  <remap from="scan" to="/rplidar_points"/>
 </node>
 <node name="laser_tf"         pkg="depthimage_to_laserscan"  type="laser_tf" output="screen" />
 <!--<node pkg="tf" type="static_transform_publisher" name="xtion_to_laser" args="0 0 0 0 0 0 1 laser2 laser 100" />-->
