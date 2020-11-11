@@ -226,6 +226,7 @@ namespace depthimage_to_laserscan
       }
     }
   
+       
     // 扫描的上下边界点
     float ythresh_min_;
     float ythresh_max_;

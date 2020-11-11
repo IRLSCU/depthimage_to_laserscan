@@ -92,8 +92,6 @@ namespace depthimage_to_laserscan
      *
      */
     void reconfigureCb(depthimage_to_laserscan::DepthConfig& config, uint32_t level);
-    // 设置上下边界点
-    void set_y_thresh(const float ythresh_min, const float ythresh_max);
 
     ros::NodeHandle pnh_; ///< Private nodehandle used to generate the transport hints in the connectCb.
     image_transport::ImageTransport it_; ///< Subscribes to synchronized Image CameraInfo pairs.
@@ -104,9 +102,6 @@ namespace depthimage_to_laserscan
     depthimage_to_laserscan::DepthImageToLaserScan dtl_; ///< Instance of the DepthImageToLaserScan conversion class.
 
     boost::mutex connect_mutex_; ///< Prevents the connectCb and disconnectCb from being called until everything is initialized.
-    // 扫描的上下边界点
-    float ythresh_min_;
-    float ythresh_max_;
 
   };
 
