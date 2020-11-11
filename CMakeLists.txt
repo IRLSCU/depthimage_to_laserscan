@@ -30,7 +30,7 @@ target_link_libraries(DepthImageToLaserScanNodelet DepthImageToLaserScanROS ${ca
 add_executable(depthimage_to_laserscan src/depthimage_to_laserscan.cpp)
 target_link_libraries(depthimage_to_laserscan DepthImageToLaserScanROS ${catkin_LIBRARIES})
 
-add_executable(laser_tf  src/TfNode.cpp)
+add_executable(laser_tf  src/TfNode.cpp src/merage_scan.cpp)
 target_link_libraries(laser_tf ${catkin_LIBRARIES} )
 
 
