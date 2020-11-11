@@ -59,8 +59,8 @@ public:
      * @param  laser_scan_ptr_2     雷达激光扫描数据2
      * @param  res                  扫描输出结果数据
      */
-    static void merageScan(const sensor_msgs::LaserScanPtr &laser_scan_ptr_1,
-                           const sensor_msgs::LaserScanPtr &laser_scan_ptr_2,
+    static void merageScan(const sensor_msgs::LaserScan::ConstPtr& laser_scan_ptr_1,
+                           const sensor_msgs::LaserScan::ConstPtr& laser_scan_ptr_2,
                            sensor_msgs::LaserScanPtr &res);
     /**
      * @brief  ros请求连接建立函数 
@@ -78,8 +78,8 @@ public:
      * @param  depth_scan_point    深度扫描点云
      */
     void synCallBack(
-        const sensor_msgs::LaserScanPtr &lidar_scan_point,
-        const sensor_msgs::LaserScanPtr &depth_scan_point);
+        const sensor_msgs::LaserScan::ConstPtr& lidar_scan_point,
+        const sensor_msgs::LaserScan::ConstPtr& depth_scan_point);
 
 private:
     message_filters::Subscriber<sensor_msgs::LaserScan> lidar_scan_; ///< 单线激光雷达扫描数据点
@@ -87,7 +87,7 @@ private:
     message_filters::Synchronizer<MySyncPolicy> sync_;               ///< 异步绑定处理节点
     ros::Publisher merage_pub_;
     ///< 公共发布节点
-    std::atomic<bool> is_connected_ = false; ///< 是否连接标志位
+    std::atomic_bool is_connected_; ///< 是否连接标志位
     std::mutex laser_scan_lock_;             ///< 输出结果数据保护锁
     sensor_msgs::LaserScanPtr res_scan_ptr_; ///< 公共链接标志指针
 };

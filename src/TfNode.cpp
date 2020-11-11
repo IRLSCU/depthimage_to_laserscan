@@ -4,7 +4,7 @@
 #include <sensor_msgs/LaserScan.h>
 #include <algorithm>
 #include <functional>
-#include "merage_scan.h"
+#include "depthimage_to_laserscan/merage_scan.h"
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "laser_tf_Node");

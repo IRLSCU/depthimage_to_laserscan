@@ -1,5 +1,5 @@
 
-#include "merage_scan.h"
+#include <depthimage_to_laserscan/merage_scan.h>
 
 
 MerageScan::MerageScan(
@@ -15,14 +15,15 @@ MerageScan::MerageScan(
 
 {
     //创建发布节点;并设置回调函数
-    this->merage_pub_ = publish_handle.advertise<sensor_msgs::LaserScan>("scan", 10,std::bind(&MerageScan::connectCallBack,this,_1),std::bind(&MerageScan::disconnectCallBack,this,_1));
+    this->merage_pub_ = publish_handle.advertise<sensor_msgs::LaserScan>("scan", 10,boost::bind(&MerageScan::connectCallBack,this,_1),boost::bind(&MerageScan::disconnectCallBack,this,_1));
     // 设置注册回调函数
-    sync_.registerCallback(std::bind(&MerageScan::synCallBack,_1,_2));
+    sync_.registerCallback(boost::bind(&MerageScan::synCallBack,this,_1,_2));
+    is_connected_.store(false);
 }
 
 void MerageScan::merageScan(
-                            const sensor_msgs::LaserScanPtr& laser_scan_ptr_1,
-                            const sensor_msgs::LaserScanPtr& laser_scan_ptr_2,
+                            const sensor_msgs::LaserScan::ConstPtr& laser_scan_ptr_1,
+                            const sensor_msgs::LaserScan::ConstPtr& laser_scan_ptr_2,
                             sensor_msgs::LaserScanPtr& res
                             )
 {
@@ -46,8 +47,8 @@ void MerageScan::merageScan(
 };
 
 void MerageScan::synCallBack( 
-                        const sensor_msgs::LaserScanPtr& lidar_scan_point,
-                        const sensor_msgs::LaserScanPtr& depth_scan_point
+                        const sensor_msgs::LaserScan::ConstPtr& lidar_scan_point,
+                        const sensor_msgs::LaserScan::ConstPtr& depth_scan_point
                      )
 {
     if(is_connected_) {

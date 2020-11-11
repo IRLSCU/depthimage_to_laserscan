@@ -111,7 +111,7 @@ namespace depthimage_to_laserscan
      * @param output_frame_id Frame_id to use for the output sensor_msgs::LaserScan.
      *
      */
-    void set_output_frame(const std::string output_frame_id);
+    void set_output_frame(const std::string& output_frame_id);
     // 设置上下边界点
     void set_y_thresh(const float ythresh_min,const float ythresh_max);
   private:

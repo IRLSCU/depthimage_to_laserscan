@@ -1,9 +1,9 @@
 # http://ros.org/doc/groovy/api/catkin/html/user_guide/supposed.html
 cmake_minimum_required(VERSION 2.8)
 project(depthimage_to_laserscan)
-
+set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 # Load catkin and all dependencies required for this package
-find_package(catkin REQUIRED dynamic_reconfigure image_geometry image_transport nodelet roscpp sensor_msgs tf)
+find_package(catkin REQUIRED dynamic_reconfigure image_geometry image_transport nodelet roscpp sensor_msgs tf message_filters)
 #find_package(OpenCV REQUIRED)
 
 # Dynamic reconfigure support
@@ -12,7 +12,7 @@ generate_dynamic_reconfigure_options(cfg/Depth.cfg)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES DepthImageToLaserScan DepthImageToLaserScanROS DepthImageToLaserScanNodelet
-  CATKIN_DEPENDS dynamic_reconfigure image_geometry image_transport nodelet roscpp sensor_msgs tf
+  CATKIN_DEPENDS dynamic_reconfigure image_geometry image_transport nodelet roscpp sensor_msgs tf message_filters
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS})
