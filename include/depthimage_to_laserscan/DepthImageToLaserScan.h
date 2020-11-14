@@ -42,15 +42,28 @@
 #include <sstream>
 #include <limits.h>
 #include <math.h>
-
+#include <iostream>
 namespace depthimage_to_laserscan
 {
   class DepthImageToLaserScan
   {
-  public:
+public:
     DepthImageToLaserScan();
     ~DepthImageToLaserScan();
-
+   /**
+     * Determines whether or not new_value should replace old_value in the LaserScan.
+     *
+     * Uses the values of range_min, and range_max to determine if new_value is a valid point.  Then it determines if
+     * new_value is 'more ideal' (currently shorter range) than old_value.
+     *
+     * @param new_value The current calculated range.
+     * @param old_value The current range in the output LaserScan.
+     * @param range_min The minimum acceptable range for the output LaserScan.
+     * @param range_max The maximum acceptable range for the output LaserScan.
+     * @return If true, insert new_value into the output LaserScan.
+     *
+     */
+    static bool use_point(const float new_value, const float old_value, const float range_min, const float range_max);
     /**
      * Converts the information in a depth image (sensor_msgs::Image) to a sensor_msgs::LaserScan.
      *
@@ -114,6 +127,7 @@ namespace depthimage_to_laserscan
     void set_output_frame(const std::string& output_frame_id);
     // 设置上下边界点
     void set_y_thresh(const float ythresh_min,const float ythresh_max);
+    inline void set_dxdydz(const float dx,const float dy,const float dz){dx_ = dx;dy_ = dy;dz_= dz;}
   private:
     /**
      * Computes euclidean length of a cv::Point3d (as a ray from origin)
@@ -139,20 +153,7 @@ namespace depthimage_to_laserscan
      */
     double angle_between_rays(const cv::Point3d& ray1, const cv::Point3d& ray2) const;
 
-    /**
-     * Determines whether or not new_value should replace old_value in the LaserScan.
-     *
-     * Uses the values of range_min, and range_max to determine if new_value is a valid point.  Then it determines if
-     * new_value is 'more ideal' (currently shorter range) than old_value.
-     *
-     * @param new_value The current calculated range.
-     * @param old_value The current range in the output LaserScan.
-     * @param range_min The minimum acceptable range for the output LaserScan.
-     * @param range_max The maximum acceptable range for the output LaserScan.
-     * @return If true, insert new_value into the output LaserScan.
-     *
-     */
-    bool use_point(const float new_value, const float old_value, const float range_min, const float range_max) const;
+   
 
     /**
     * Converts the depth image to a laserscan using the DepthTraits to assist.
@@ -174,12 +175,13 @@ namespace depthimage_to_laserscan
       // 获取像素中心点坐标
       float center_x = cam_model.cx();
       float center_y = cam_model.cy();
+      
       // Combine unit conversion (if necessary) with scaling by focal length for computing (X,Y)
       // 设置缩放比例尺将基本单位转换为米
       double unit_scaling = depthimage_to_laserscan::DepthTraits<T>::toMeters( T(1) );
-      // 计算对应的高度
-      float constant_x = unit_scaling / cam_model.fx();
-      float constant_y = unit_scaling / cam_model.fy();
+      // 计算对应的高度对应的比例尺
+      float constant_x = unit_scaling / (cam_model.fx());
+      float constant_y = unit_scaling / (cam_model.fy());
       // 获取数据行指针
       const T* depth_row = reinterpret_cast<const T*>(&depth_msg->data[0]);
       // 获取每行步长
@@ -187,6 +189,7 @@ namespace depthimage_to_laserscan
       // 计算山下偏移
       int offset = (int)(cam_model.cy()-scan_height/2);
       depth_row += offset*row_step; // Offset to center of image
+      //std::cout<<"center="<<center_x<<":"<<center_y<<";unit_scaling="<<unit_scaling<<";constant="<<constant_x<<":"<<constant_y<<std::endl;
       // 遍历图图像
       for(int v = offset; v < offset+scan_height_; v++, depth_row += row_step){ //按照行进行遍历
         for (int u = 0; u < (int)depth_msg->width; u++) // 遍历行中每一个像素点
@@ -197,17 +200,25 @@ namespace depthimage_to_laserscan
           if(depth==0) {
               continue;
           }
-          double r = depth; // Assign to pass through NaNs and Infs
-          double th = -atan2((double)(u - center_x) * constant_x, unit_scaling); // Atan2(x, z), but depth divides out
+          double r,th;
+          int index=0;
+          // double r = depth; // Assign to pass through NaNs and Infs
+          // double th = -atan2((double)(u - center_x) * constant_x, unit_scaling); // Atan2(x, z), but depth divides out
           // 计算转角对应索引
-          int index = (th - scan_msg->angle_min) / scan_msg->angle_increment;
+          //int index = (th - scan_msg->angle_min) / scan_msg->angle_increment;
           // depth存在
           if (depthimage_to_laserscan::DepthTraits<T>::valid(depth)){ // Not NaN or Inf
             // Calculate in XYZ 
-            // 计算xyz对应的坐标
-            double x = (u - center_x) * depth * constant_x;
-            double z = depthimage_to_laserscan::DepthTraits<T>::toMeters(depth);
-            double y = (v - center_y) * depth * constant_y;//定义y数值
+            // 计算xyz对应的坐标,编号为m
+            double x = (u - center_x) * depth * constant_x+dx_;
+            double z = depthimage_to_laserscan::DepthTraits<T>::toMeters(depth)+dz_;
+            double y = (v - center_y) * depth * constant_y+dy_;//定义y数值
+            //std::cout<< "==="<<th<<":"<<-atan2(x,z)<<std::endl;
+            th = -atan2(x,z);
+            index = (th - scan_msg->angle_min) / scan_msg->angle_increment;
+            if(index>scan_msg->ranges.size()) {
+              continue;
+            }
             //如果y不符合条件就把他忽略
             if(y<ythresh_min_||y>ythresh_max_)
             {
@@ -216,12 +227,13 @@ namespace depthimage_to_laserscan
             }
             // Calculate actual distance
             r = sqrt(pow(x, 2.0) + pow(z, 2.0));
+
+            // Determine if this point should be used.
+            if(use_point(r, scan_msg->ranges[index], scan_msg->range_min, scan_msg->range_max)) {
+              scan_msg->ranges[index] = r;
+            }
           }
         
-          // Determine if this point should be used.
-          if(use_point(r, scan_msg->ranges[index], scan_msg->range_min, scan_msg->range_max)) {
-            scan_msg->ranges[index] = r;
-          }
         }
       }
     }
@@ -230,6 +242,10 @@ namespace depthimage_to_laserscan
     // 扫描的上下边界点
     float ythresh_min_;
     float ythresh_max_;
+    // 设置中心坐标偏移点;主要用于中心点校正;注意这里的单位是m
+    float dx_;
+    float dy_;
+    float dz_;
 
     image_geometry::PinholeCameraModel cam_model_; ///< image_geometry helper class for managing sensor_msgs/CameraInfo messages.
 

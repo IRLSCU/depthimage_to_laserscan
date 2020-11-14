@@ -18,7 +18,7 @@ MerageScan::MerageScan(
     this->merage_pub_ = publish_handle.advertise<sensor_msgs::LaserScan>("scan", 10,boost::bind(&MerageScan::connectCallBack,this,_1),boost::bind(&MerageScan::disconnectCallBack,this,_1));
     // 设置注册回调函数
     sync_.registerCallback(boost::bind(&MerageScan::synCallBack,this,_1,_2));
-    is_connected_.store(false);
+    is_connected_.store(true);
 }
 
 void MerageScan::merageScan(
@@ -51,16 +51,18 @@ void MerageScan::synCallBack(
                         const sensor_msgs::LaserScan::ConstPtr& depth_scan_point
                      )
 {
+    ROS_INFO("====== Start Syn");
     if(is_connected_) {
         merageScan(lidar_scan_point,depth_scan_point,this->res_scan_ptr_);
         merage_pub_.publish(this->res_scan_ptr_);
     }
+    ROS_INFO("====== end Syn");
 }
 
 void MerageScan::connectCallBack(const ros::SingleSubscriberPublisher& pub) 
 {
     is_connected_.store(true);
-    ROS_INFO("SingleSubscriberPublisher connected");
+    ROS_INFO("===== SingleSubscriberPublisher connected");
 }
 
 void MerageScan::disconnectCallBack(const ros::SingleSubscriberPublisher& pub) 

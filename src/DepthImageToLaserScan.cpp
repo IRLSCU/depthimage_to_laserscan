@@ -57,7 +57,7 @@ double DepthImageToLaserScan::angle_between_rays(const cv::Point3d& ray1, const 
   return acos(dot_product / (magnitude1 * magnitude2));
 }
 
-bool DepthImageToLaserScan::use_point(const float new_value, const float old_value, const float range_min, const float range_max) const{
+bool DepthImageToLaserScan::use_point(const float new_value, const float old_value, const float range_min, const float range_max) {
   // Check for NaNs and Infs, a real number within our limits is more desirable than these.
   const bool new_finite = std::isfinite(new_value);
   const bool old_finite = std::isfinite(old_value);
@@ -71,7 +71,7 @@ bool DepthImageToLaserScan::use_point(const float new_value, const float old_val
   }
 
   // If not in range, don't bother
-  const bool range_check = range_min <= new_value && new_value <= range_max;
+  const bool range_check = (range_min <= new_value && new_value <= range_max);
   if(!range_check){
     return false;
   }
@@ -106,6 +106,7 @@ sensor_msgs::LaserScanPtr DepthImageToLaserScan::convert_msg(const sensor_msgs::
   double angle_max = angle_between_rays(left_ray, center_ray);
   double angle_min = -angle_between_rays(center_ray, right_ray); // Negative because the laserscan message expects an opposite rotation of that from the depth image
   // Fill in laserscan message
+  // 创建扫描数据
   sensor_msgs::LaserScanPtr scan_msg(new sensor_msgs::LaserScan());
   scan_msg->header = depth_msg->header;
   // 设置帧号
