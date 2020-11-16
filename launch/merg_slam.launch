@@ -2,6 +2,7 @@
     <!--深度相机和雷达融合slam launch文件-->
 	<!-- <include file="$(find openni2_launch)/launch/openni2.launch"/> -->
 	<include file="$(find astra_launch)/launch/astra.launch" />
+    <!-- 深度转换 -->
 	<node name="depth_scan" pkg="depthimage_to_laserscan" type="depthimage_to_laserscan" output="screen" args="image:=/camera/depth/image_raw">
 		<remap from="depth_image" to="/camera/depth_registered/image_raw" />
 		<remap from="camera_info" to="/camera/depth_registered/camera_info" />
@@ -27,7 +28,7 @@
 	</node>
 	<!-- 进行节点转换 -->
 	<node name="laser_tf"         pkg="depthimage_to_laserscan"  type="laser_tf" output="screen" >
-        <remap from="merg_res" to="/scan">
+        <remap from="merg_res" to="/scan"/>
     </node>
     <!-- 雷达坐标变换 -->
 	<node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" args="0.04 0 0.18 0 0 0  /base_link /laser  100" />
