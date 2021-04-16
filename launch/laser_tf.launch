@@ -1,0 +1,5 @@
+<launch>
+<node name="laser_tf"         pkg="depthimage_to_laserscan"  type="laser_tf" output="screen" >
+        <remap from="merg_res" to="/scan1"/>
+</node>
+</launch>
