@@ -79,7 +79,7 @@ public:
      */
     void synCallBack(
         const sensor_msgs::LaserScan::ConstPtr& lidar_scan_point,
-        const sensor_msgs::LaserScan::ConstPtr& depth_scan_point);
+        const sensor_msgs::LaserScan::ConstPtr& depth_scan_point)
 
 private:
     message_filters::Subscriber<sensor_msgs::LaserScan> lidar_scan_; ///< 单线激光雷达扫描数据点
