@@ -9,11 +9,11 @@
 		<param name="output_frame_id" value="camera_depth_frame" />
 		<param name="range_min" type="double" value="00" />
 		<param name="range_max" type="double" value="10.0" />
-		<param name="ythresh_min" type="double" value="-0.60" />
-		<param name="ythresh_max" type="double" value="0.40" />
-		<param name="center_dx" type="double" value="-0.075" />
-		<param name="center_dy" type="double" value="-0.08" />
-		<param name="center_dz" type="double" value="-0.015" />
+		<param name="ythresh_min" type="double" value="-0.03" />
+		<param name="ythresh_max" type="double" value="-0.02" />
+		<param name="center_dx" type="double" value="-0.025" />
+		<param name="center_dy" type="double" value="-0.07" />
+		<param name="center_dz" type="double" value="-0.0" />
 	</node>
 	
 	<!-- <node name="laser_tf"         pkg="depthimage_to_laserscan"  type="laser_tf" output="screen" >
