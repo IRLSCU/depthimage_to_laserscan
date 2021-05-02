@@ -210,9 +210,9 @@ public:
           if (depthimage_to_laserscan::DepthTraits<T>::valid(depth)){ // Not NaN or Inf
             // Calculate in XYZ 
             // 计算xyz对应的坐标,编号为m
-            double x = (u - center_x) * depth * constant_x+dx_;
+            double x = (u - center_x) * depth * constant_x + dx_;
             double z = depthimage_to_laserscan::DepthTraits<T>::toMeters(depth)+dz_;
-            double y = (v - center_y) * depth * constant_y+dy_;//定义y数值
+            double y = (v - center_y) * depth * constant_y + dy_;//定义y数值
             //std::cout<< "==="<<th<<":"<<-atan2(x,z)<<std::endl;
             th = -atan2(x,z);
             index = (th - scan_msg->angle_min) / scan_msg->angle_increment;
@@ -220,9 +220,9 @@ public:
               continue;
             }
             //如果y不符合条件就把他忽略
-            if(y<ythresh_min_||y>ythresh_max_)
+            if(y<ythresh_min_ || y>ythresh_max_)
             {
-                r = std::numeric_limits<float>::quiet_NaN();//精髓在这一步，没看懂
+                r = std::numeric_limits<float>::quiet_NaN();//精髓在这一步
                 continue;
             }
             // Calculate actual distance
